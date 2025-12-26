@@ -3,37 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SINET ERP v2.3</title>
+    <title>SINET ERP v4.6</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --primary: #2c3e50; --accent: #2980b9; --bg: #f4f7f6;
             --panel: #ffffff; --text: #333; --success: #27ae60; --danger: #c0392b;
+            --warning: #e67e22; --google: #0F9D58;
         }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; color: var(--text); padding-bottom: 50px; }
-        .container { max-width: 800px; margin: 0 auto; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; color: var(--text); padding-bottom: 60px; }
+        .container { max-width: 900px; margin: 0 auto; }
 
-        /* HEADER */
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: white; padding: 10px 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         h1 { margin: 0; color: var(--primary); font-size: 1.4rem; }
         .date-badge { font-size: 0.8rem; font-weight: bold; color: #7f8c8d; }
 
-        /* DASHBOARD */
-        .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
-        .card { background: linear-gradient(135deg, var(--primary), #34495e); color: white; padding: 12px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .card h3 { margin: 0 0 5px 0; font-size: 0.7rem; opacity: 0.9; text-transform: uppercase; }
-        .card .value { font-size: 1.1rem; font-weight: bold; }
-        .card.kw { background: linear-gradient(135deg, #e67e22, #d35400); }
-        .card.fx { background: linear-gradient(135deg, #16a085, #1abc9c); }
-
-        /* MENU */
-        #menuSection { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        /* MENU GRID */
+        #menuSection { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .menu-btn { 
-            background: white; border: none; padding: 25px 10px; border-radius: 12px; 
+            background: white; border: none; padding: 20px 10px; border-radius: 12px; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;
             font-size: 1rem; font-weight: bold; color: var(--primary); transition: transform 0.1s;
         }
         .menu-btn:active { transform: scale(0.98); background: #f9f9f9; }
-        .menu-btn span { font-size: 2.2rem; margin-bottom: 8px; }
+        .menu-btn span { font-size: 2rem; margin-bottom: 8px; }
+        .btn-anal { background: linear-gradient(135deg, #fff, #f0f8ff); border: 1px solid #d6eaf8; grid-column: span 2; }
 
         /* SECTIONS */
         .app-section { display: none; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); animation: slideUp 0.2s; }
@@ -42,311 +36,474 @@
         .nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .back-btn { background: #95a5a6; color: white; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; }
 
-        /* FORMS */
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 0.9rem; }
         input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        #inpDesc { text-transform: uppercase; }
+
         .btn-save { width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1.1rem; margin-top: 10px; cursor: pointer; }
-
-        .special-box { background: #fffbf0; padding: 10px; border: 1px dashed #f1c40f; border-radius: 6px; margin-top: 5px; display: none; }
+        .btn-save.update-mode { background: var(--warning); }
         
-        /* REPORT */
-        .tabs { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 2px; }
-        .tab-btn { background: #eee; border: none; padding: 8px 12px; border-radius: 15px; font-size: 0.85rem; font-weight: 600; color: #7f8c8d; white-space: nowrap; }
-        .tab-btn.active { background: var(--primary); color: white; }
+        .special-box { background: #fffbf0; padding: 10px; border: 1px dashed #f1c40f; border-radius: 6px; margin-top: 5px; display: none; }
+        .shortcut-link { float: right; font-size: 0.85rem; color: var(--accent); cursor: pointer; text-decoration: underline; }
 
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        th, td { padding: 10px 5px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; color: #2c3e50; }
-        .action-toolbar { margin-bottom: 15px; text-align: right; display: flex; justify-content: flex-end; gap: 10px; }
-        .btn-md { background: var(--success); color: white; padding: 10px 15px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; }
-        .btn-print { background: #34495e; color: white; padding: 10px 15px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 10px; }
+        th, td { padding: 8px 5px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f1f2f6; color: #2c3e50; font-weight: 600; }
+        
+        .btn-icon { border:none; background:none; cursor:pointer; font-size:1.1rem; padding: 0 5px; }
+        .btn-icon:hover { transform: scale(1.2); }
+        .edit-icon { color: var(--accent); }
+        .del-icon { color: var(--danger); }
+        .add-icon { color: var(--success); font-weight: bold; border:1px solid #ddd; border-radius:50%; width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center; background: #eafaf1; }
 
-        /* BACKUP */
-        .backup-area { background: #eef2f3; padding: 15px; border-radius: 8px; border: 1px solid #dfe6e9; margin-top: 20px; }
-        .backup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .btn-backup { background: #2c3e50; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .btn-restore { background: #e67e22; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        /* CAT MANAGER */
+        .cat-item { padding:10px; border-bottom:1px solid #eee; }
+        .cat-header { display:flex; justify-content:space-between; align-items:center; cursor:pointer; font-weight:bold; }
+        .cat-header:hover { background-color: #f9f9f9; }
+        .sub-cat-list { display:none; margin-top:10px; padding-left:20px; background:#fff; border-left:3px solid #ddd; }
+        .sub-cat-item { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px dotted #ccc; font-size:0.9rem; }
 
-        /* HELP TEXT STYLES */
-        .help-content h3 { color: var(--accent); border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 25px; font-size: 1.1rem; }
-        .help-content p, .help-content li { font-size: 0.95rem; line-height: 1.6; color: #444; margin-bottom: 10px; }
-        .help-content ul { padding-left: 20px; }
-        .help-tag { background: #eee; padding: 2px 6px; border-radius: 4px; font-size: 0.8em; font-weight: bold; border: 1px solid #ccc; }
+        /* HIGHLIGHT ANIMATION */
+        @keyframes highlight { 0% { background-color: #fff; } 50% { background-color: #fff3cd; } 100% { background-color: #fff; } }
+        .highlight-input { animation: highlight 1s ease; }
 
-        /* PRINT SYSTEM */
+        .filter-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8f9fa; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
+        .stat-card { background: #ecf0f1; padding: 10px; border-radius: 6px; text-align: center; margin-bottom: 10px; }
+        .stat-val { font-size: 1.2rem; font-weight: bold; color: var(--primary); }
+        .stat-lbl { font-size: 0.8rem; color: #7f8c8d; }
+        .sub-row { background-color: #fcfcfc; color: #555; font-size: 0.85rem; display: none; }
+        .sub-row td { padding-left: 20px; border-bottom: 1px dashed #eee; }
+        .cat-row { cursor: pointer; }
+        .chart-box { position: relative; height: 300px; margin: 20px 0; }
+
+        .action-toolbar { margin-top: 15px; text-align: right; display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+        .btn-act { padding: 10px 15px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; color: white; }
+        .bg-green { background: var(--success); }
+        .bg-blue { background: var(--accent); }
+        .bg-dark { background: var(--primary); }
+        .bg-warning { background: var(--warning); color: white; }
+
         @media print {
             body * { visibility: hidden; }
-            #reportSection, #reportSection * { visibility: visible; }
-            #reportSection { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; box-shadow: none; display: block !important; }
-            .nav-bar, .tabs, .action-toolbar, .btn-del, .btn-edit, h2 { display: none !important; }
-            table { border: 1px solid #000; font-size: 12pt; width: 100%; }
-            th { background-color: #eee !important; color: black !important; border: 1px solid #000; }
-            td { border: 1px solid #aaa; color: black !important; }
-            #printHeader { display: block !important; margin-bottom: 20px; text-align: center; font-size: 16pt; font-weight: bold; border-bottom: 2px solid black; padding-bottom: 10px; }
+            .print-visible, .print-visible * { visibility: visible; }
+            .print-visible { position: absolute; left: 0; top: 0; width: 100%; display: block !important; padding: 0; margin: 0; }
+            .no-print { display: none !important; }
+            canvas { max-height: 400px; }
+            .sub-row { display: table-row !important; } 
+            .cat-row { font-weight: bold; background: #eee !important; -webkit-print-color-adjust: exact; }
+            #analyticsPrintHeader { display: block !important; }
         }
-        #printHeader { display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <div><h1>SINET ERP v2.3</h1></div>
+        <div><h1>SINET ERP v4.6</h1></div>
         <div class="date-badge" id="currentDateDisplay"></div>
     </header>
 
-    <div class="dashboard-grid" id="dashboardSection">
-        <div class="card"><h3>Trošak</h3><div class="value" id="dashTotal">0</div></div>
-        <div class="card kw"><h3>KW</h3><div class="value" id="dashKW">0</div></div>
-        <div class="card fx"><h3>Devize</h3><div class="value" id="dashFX">0</div></div>
-    </div>
-
     <div id="menuSection">
         <button class="menu-btn" onclick="app.nav('input')"><span>➕</span> Novi Unos</button>
-        <button class="menu-btn" onclick="app.nav('report')"><span>📅</span> Izveštaji</button>
+        <button class="menu-btn" onclick="app.nav('report')"><span>📅</span> Izveštaj (Lista)</button>
+        <button class="menu-btn btn-anal" onclick="app.nav('analytics')"><span>📊</span> <b>ANALITIKA & DEVIZE</b><br><small style="font-size:0.7rem; font-weight:normal;">Troškovi, Struja, Grafikoni</small></button>
         <button class="menu-btn" onclick="app.nav('settings')"><span>⚙️</span> Podešavanja</button>
         <button class="menu-btn" onclick="app.nav('help')"><span>❓</span> Pomoć</button>
     </div>
 
     <div id="inputSection" class="app-section">
-        <div class="nav-bar"><h2>Unos</h2><button class="back-btn" onclick="app.nav('home')">Nazad</button></div>
+        <div class="nav-bar"><h2>Unos / Izmena</h2><button class="back-btn" onclick="app.nav('home')">Nazad</button></div>
         <input type="hidden" id="inpId">
         <div class="form-group"><label>Datum</label><input type="date" id="inpDate"></div>
-        <div class="form-group"><label>Kategorija</label><select id="inpCategory" onchange="app.handleCatChange()"></select></div>
+        <div class="form-group">
+            <label>Kategorija <span class="shortcut-link" onclick="app.nav('settings')">[Upravljanje Kat.]</span></label>
+            <select id="inpCategory" onchange="app.handleCatChange()"></select>
+        </div>
         <div class="form-group" id="grpSub"><label>Potkategorija</label><select id="inpSub"></select></div>
-        
         <div id="specElec" class="special-box"><label>Struja (KW)</label><div style="display:flex; gap:10px;"><input type="number" id="inpVT" placeholder="VT"><input type="number" id="inpNT" placeholder="NT"></div></div>
-        <div id="specFX" class="special-box"><label>Menjačnica</label><div style="display:flex; gap:10px;"><input type="number" id="inpFxAmt" placeholder="Devize"><input type="number" id="inpFxRate" placeholder="Kurs"></div><div style="text-align:right; margin-top:5px;">= <span id="fxRes">0.00</span> RSD</div></div>
-        
-        <div class="form-group"><label>Iznos (RSD)</label><input type="number" id="inpAmount" step="0.01"></div>
-        <div class="form-group"><label>Opis</label><input type="text" id="inpDesc"></div>
-        <button class="btn-save" onclick="app.saveEntry()">Sačuvaj</button>
+        <div id="specFX" class="special-box"><label>Menjačnica</label><div style="display:flex; gap:10px;"><input type="number" id="inpFxAmt" placeholder="Devize" step="0.01"><input type="number" id="inpFxRate" placeholder="Kurs" step="0.01"></div><div style="text-align:right; margin-top:5px;">= <span id="fxRes">0.00</span> RSD</div></div>
+        <div class="form-group"><label>Iznos (RSD)</label><input type="number" id="inpAmount" step="0.01" placeholder="0.00"></div>
+        <div class="form-group"><label>Opis</label><input type="text" id="inpDesc" placeholder="OPIS TROŠKA"></div>
+        <button id="btnSave" class="btn-save" onclick="app.saveEntry()">Sačuvaj</button>
     </div>
 
-    <div id="reportSection" class="app-section">
-        <div class="nav-bar"><h2>Izveštaji</h2><button class="back-btn" onclick="app.nav('home')">Nazad</button></div>
-        <div id="printHeader">Finansijski Izveštaj</div>
-        <div class="tabs">
-            <button class="tab-btn active" onclick="app.setReportView('ALL', this)">Svi</button>
-            <button class="tab-btn" onclick="app.setReportView('WEEK', this)">Sedmica</button>
-            <button class="tab-btn" onclick="app.setReportView('MONTH', this)">Mesec</button>
+    <div id="reportSection" class="app-section print-visible">
+        <div class="nav-bar no-print"><h2>Dnevnik Troškova</h2><button class="back-btn" onclick="app.nav('home')">Nazad</button></div>
+        <div class="filter-bar no-print">
+            <button onclick="app.setReportRange('THIS_MONTH')" style="padding:5px;">Ovaj Mesec</button>
+            <button onclick="app.setReportRange('ALL')" style="padding:5px;">Sve</button>
         </div>
-        <div class="action-toolbar">
-            <button class="btn-md" onclick="app.downloadMD()">💾 Export .MD</button>
-            <button class="btn-print" onclick="window.print()">🖨️ Štampaj</button>
-        </div>
+        <div id="printHeader" style="display:none; text-align:center; margin-bottom:20px;"><h2>SINET ERP - Dnevnik</h2></div>
         <div id="reportContainer"></div>
+        <div class="action-toolbar no-print">
+            <button class="btn-act bg-green" onclick="app.downloadMD()">💾 Export .MD</button>
+            <button class="btn-act bg-dark" onclick="window.print()">🖨️ Štampaj</button>
+        </div>
+    </div>
+
+    <div id="analyticsSection" class="app-section print-visible">
+        <div class="nav-bar no-print"><h2>Analitika & Bilans</h2><button class="back-btn" onclick="app.nav('home')">Nazad</button></div>
+        <div class="filter-bar no-print">
+            <div><label>Od:</label><input type="date" id="anDateFrom"></div>
+            <div><label>Do:</label><input type="date" id="anDateTo"></div>
+        </div>
+        <div class="no-print" style="margin-bottom:15px; display:flex; gap:5px;">
+            <button onclick="app.quickFilter('month')" style="flex:1; padding:8px;">Mesec</button>
+            <button onclick="app.quickFilter('year')" style="flex:1; padding:8px;">Godina</button>
+            <button onclick="app.generateAnalytics()" style="flex:1; background:var(--accent); color:white; font-weight:bold; border:none; border-radius:4px;">OSVEŽI</button>
+        </div>
+        <div id="analyticsPrintHeader" style="text-align:center; border-bottom:2px solid #333; margin-bottom:15px; display:none;"><h2>SINET ERP - Finansijski Presek</h2><p id="anPeriodLbl"></p></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="stat-card"><div class="stat-val" id="anTotal">0.00</div><div class="stat-lbl">Ukupno RSD</div></div>
+            <div class="stat-card"><div class="stat-val" id="anAvg">0.00</div><div class="stat-lbl">Prosek / Dan</div></div>
+        </div>
+        <div class="chart-box"><canvas id="mainChart"></canvas></div>
+        <h3>Troškovi po Kategorijama</h3>
+        <table id="analyticsTable"><thead><tr><th>Kategorija</th><th style="text-align:right">Iznos</th><th style="text-align:right">%</th></tr></thead><tbody id="analyticsBody"></tbody></table>
+        <div style="margin-top:30px; border-top:2px dashed #ccc; padding-top:10px;"><h3>💱 Devizni Bilans</h3><div style="background:#e8f8f5; padding:10px; border-radius:6px; border:1px solid #a3e4d7;"><div style="display:flex; justify-content:space-between; margin-bottom:5px;"><b>Ukupno kupljeno:</b> <span id="fxTotal">0.00</span> RSD</div><div id="fxTableContainer"></div></div></div>
+        <div style="margin-top:20px; border-top:2px dashed #ccc; padding-top:10px;"><h3>⚡ Energetski Bilans</h3><div style="display:flex; justify-content:space-between; background:#fffbf0; padding:10px; border-radius:6px; border:1px solid #f9e79f;"><div><b>Ukupno KW:</b> <span id="enTotalKW">0</span></div><div>VT: <span id="enVT">0</span> | NT: <span id="enNT">0</span></div></div></div>
+        <div class="action-toolbar no-print"><button class="btn-act bg-dark" onclick="window.print()">🖨️ Štampaj Izveštaj</button></div>
     </div>
 
     <div id="settingsSection" class="app-section">
         <div class="nav-bar"><h2>Podešavanja</h2><button class="back-btn" onclick="app.nav('home')">Nazad</button></div>
-        <div class="form-group">
-            <label>Nova Glavna Kategorija:</label>
-            <div style="display:flex; gap:5px;"><input type="text" id="newMainCat" placeholder="Naziv"><button onclick="app.addMainCat()" style="background:var(--success); color:white; border:none; padding:10px; border-radius:4px;">OK</button></div>
-        </div>
-        <div class="form-group">
-            <label>Dodaj Potkategoriju:</label>
-            <div style="display:flex; gap:5px; flex-direction:column;">
-                <select id="targetMainCat"></select>
-                <div style="display:flex; gap:5px;"><input type="text" id="newSubCat" placeholder="Naziv stavke"><button onclick="app.addSubCat()" style="background:var(--success); color:white; border:none; padding:10px; border-radius:4px;">OK</button></div>
+        
+        <div style="background:#eaf2f8; padding:15px; border-radius:8px; border:1px solid #2980b9; margin-bottom:20px;">
+            <h3 style="margin-top:0; color:#2980b9;">📂 Upravljanje Kategorijama</h3>
+            
+            <div class="form-group">
+                <label>1. Nova Glavna Kategorija:</label>
+                <div style="display:flex; gap:5px;"><input type="text" id="newMainCat" placeholder="Npr. TROŠKOVI STANA"><button class="btn-act bg-blue" onclick="app.addMainCat()">Dodaj</button></div>
             </div>
+            
+            <div class="form-group" id="subCatAdder">
+                <label>2. Nova Potkategorija (za odabrano):</label>
+                <div style="display:flex; flex-direction:column; gap:5px;">
+                    <select id="targetMainCat"></select>
+                    <div style="display:flex; gap:5px;"><input type="text" id="newSubCat" placeholder="Npr. Kirija"><button class="btn-act bg-blue" onclick="app.addSubCat()">Dodaj</button></div>
+                </div>
+            </div>
+            
+            <h4 style="margin-bottom:5px;">Lista Vaših Kategorija:</h4>
+            <div style="font-size:0.85rem; color:#666; margin-bottom:10px;">Savet: Kliknite na <b style="color:var(--success)">[➕]</b> da biste izabrali kategoriju za dodavanje potkategorija.</div>
+            <div id="catListContainer" style="margin-top:5px; max-height:300px; overflow-y:auto; border:1px solid #ccc; background:white;"></div>
         </div>
+
         <div class="backup-area">
-            <strong>💾 Sigurnosna Kopija (Backup)</strong>
-            <div class="backup-grid">
-                <button class="btn-backup" onclick="app.backupData()">⬇️ Napravi Backup</button>
-                <button class="btn-restore" onclick="document.getElementById('fileRestore').click()">⬆️ Učitaj Backup</button>
+            <h3>☁️ Cloud & Backup</h3>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <button class="btn-act bg-green" style="grid-column: span 2;" onclick="app.syncToGoogleCloud()">☁️ Sinhronizuj (Google)</button>
+                <button class="btn-act bg-dark" onclick="app.backupData()">⬇️ Backup Fajl</button>
+                <button class="btn-act bg-warning" onclick="document.getElementById('fileRestore').click()">⬆️ Učitaj Fajl</button>
             </div>
             <input type="file" id="fileRestore" style="display:none" onchange="app.restoreData(this)">
+            <br><br>
+            <button onclick="app.factoryReset()" style="width:100%; padding:15px; background:var(--danger); color:white; border:none; border-radius:6px;">⚠️ FABRIČKI RESET</button>
         </div>
     </div>
-
+    
     <div id="helpSection" class="app-section">
-        <div class="nav-bar"><h2>Pomoć i Uputstvo</h2><button class="back-btn" onclick="app.nav('home')">Nazad</button></div>
-        <div class="help-content">
-            <p>Dobrodošli u <b>SINET ERP</b>, vaš lični, bezbedni i brzi finansijski asistent. Svi podaci se čuvaju isključivo na vašem uređaju.</p>
+         <div class="nav-bar"><h2>Pomoć i Priručnik</h2><button class="back-btn" onclick="app.nav('home')">Nazad</button></div>
+         <div class="help-content">
+            <h3>1. KAKO UNETI NOVE KATEGORIJE (PRIMER STAN)?</h3>
+            <p>Želite da dodate <b>"TROŠKOVI STANA"</b> i stavke Kirija, Struja, Infostan?</p>
+            <ol>
+                <li>Idite u <span>⚙️ Podešavanja</span>.</li>
+                <li>U polje <b>"1. Nova Glavna Kategorija"</b> upišite: <code>TROŠKOVI STANA</code> i kliknite Dodaj.</li>
+                <li>Sada tu kategoriju vidite u listi ispod.</li>
+                <li>Pored nje kliknite na zeleno dugme <b>[➕]</b>.</li>
+                <li>Sistem će automatski postaviti "TROŠKOVI STANA" u polje iznad.</li>
+                <li>Sada u polje za potkategoriju upišite <code>Kirija</code> i kliknite Dodaj.</li>
+                <li>Zatim upišite <code>Struja</code> i kliknite Dodaj.</li>
+                <li>Zatim upišite <code>Infostan</code> i kliknite Dodaj.</li>
+            </ol>
+            <p>Sve je spremno! Vratite se na Unos i koristite ih.</p>
 
-            <h3>1. Unos Podataka</h3>
+            <h3>2. IZMENA I BRISANJE</h3>
             <ul>
-                <li>Kliknite na <span class="help-tag">➕ Novi Unos</span> za početak.</li>
-                <li><b>Specijalna polja:</b> Ako izaberete kategoriju <i>Električna energija</i>, otvoriće se polja za unos VT i NT (Viša/Niža tarifa).</li>
-                <li><b>Menjačnica:</b> Unosi u kategoriji <i>Menjačnica</i> služe samo za evidenciju (preračun kursa) i <b>ne ulaze</b> u ukupan zbir mesečnih troškova.</li>
+                <li>U <b>Podešavanjima</b>, kliknite na ime kategorije da vidite njene potkategorije.</li>
+                <li>Kliknite <b>✎</b> da promenite ime (npr. "Kirija" u "Stanarina"). To će ispraviti i sve stare unose!</li>
+                <li>Kliknite <b>❌</b> da obrišete kategoriju. (Ovo radi samo ako niste već uneli troškove za nju).</li>
             </ul>
 
-            <h3>2. Izveštaji i Štampa</h3>
+            <h3>3. ISPRAVKA GREŠKE U UNOSU</h3>
             <ul>
-                <li>Koristite tabove (Svi, Sedmica, Mesec) za filtriranje podataka.</li>
-                <li>Dugme <span class="help-tag">🖨️ Štampaj</span> automatski priprema tabelu za štampu na A4 formatu ili za čuvanje kao PDF. Aplikacija će sakriti sve menije i ostaviti samo čistu tabelu.</li>
-                <li>Dugme <span class="help-tag">💾 Export .MD</span> preuzima tekstualni fajl koji možete otvoriti u Excelu, Notepadu ili Wordu.</li>
+                <li>Ako ste pogrešili iznos ili datum, idite u <span>📅 Izveštaj</span>.</li>
+                <li>Pronađite taj trošak i kliknite na <b>✎ (olovku)</b>.</li>
+                <li>Ispravite podatke i kliknite dugme <b>"Ažuriraj Izmenu"</b>.</li>
             </ul>
-
-            <h3>3. Backup i Restore (Važno!)</h3>
-            <p>Pošto aplikacija nema server, vi ste vlasnik svojih podataka. Da biste ih sačuvali:</p>
-            <ul>
-                <li>Idite u <b>Podešavanja</b> (zupčanik).</li>
-                <li>Kliknite na <span class="help-tag">⬇️ Napravi Backup</span>. Ovo će preuzeti fajl `SINET_BACKUP.json` na vaš telefon.</li>
-                <li>Ovaj fajl čuvajte na sigurnom (Google Drive, Email).</li>
-                <li>Ako promenite telefon, kliknite na <span class="help-tag">⬆️ Učitaj Backup</span> i izaberite taj fajl da biste vratili sve podatke.</li>
-            </ul>
-
-            <h3>4. Prilagođavanje</h3>
-            <p>U podešavanjima možete sami dodavati nove Glavne kategorije i njihove Potkategorije po želji.</p>
-        </div>
+         </div>
     </div>
 </div>
 
 <script>
-    const DEFAULT_CATS = { "Hrana":["Market","Pekara"], "Automobil":["Gorivo","Servis"], "Električna energija":["Račun"], "Menjačnica":["Kupovina"], "Razno":["Ostalo"] };
+    const CATEGORY_MAP = {
+        "Hrana": ["Market", "Kvantaš", "Lidl", "Mega", "Pijaca R.", "Pijaca L.", "Pijaca F."],
+        "Apoteka": ["Redovna terapija", "Participacija", "Pregled kod lekara", "Beli recept"],
+        "Automobil": ["Gorivo", "Provera guma", "Pranje", "Tehnički pregled", "Registracija", "Popravka", "Servis"],
+        "Električna energija": ["Račun za struju"], "Telefon": ["A1", "YETTEL", "MTS", "Ostali"], "TV pretplata": ["SBB", "MTS", "Ostali"],
+        "Higijena, Hemija": ["Sredstva za čišćenje", "Lična higijena", "Razno"], "Deca": ["Voće i hrana", "Rođendan", "Božić", "Nova Godina", "Škola", "Pribor"],
+        "Šišanje": ["Muško", "Žensko"], "Lični trošak": ["Odeća", "Obuća", "Donji veš", "Ostalo"], "Pokloni": ["Poseta", "Rođendan", "Slava", "Sahrana"],
+        "Groblje": ["Sahrana", "Daća", "Pomen", "Zadušnice", "Održavanje"], "Porezi": ["JB16", "NS", "Bajša zemlja", "Stefan"],
+        "Razni troškovi": ["Ostalo"], "Menjačnica": ["Konverzija"] 
+    };
+    const SINET_CLOUD_CONFIG = { url: "https://script.google.com/macros/s/AKfycby8s-zLBrj9F0Bp8CGfmkYl_2itcMUNakKzPxfHjBl9r0SfIypVj4bmFu0mtIjTozJcvA/exec", api_secret: "SINET_2025_SECURE" };
 
     class App {
         constructor() {
-            this.data = JSON.parse(localStorage.getItem('erp_v20_data')) || [];
-            this.cats = JSON.parse(localStorage.getItem('erp_v20_cats')) || DEFAULT_CATS;
-            this.currentReportView = 'ALL'; 
+            this.data = JSON.parse(localStorage.getItem('erp_v46_data')) || [];
+            this.cats = JSON.parse(localStorage.getItem('erp_v46_cats')) || CATEGORY_MAP;
+            this.chartInstance = null;
             this.init();
         }
-
         init() {
             document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('sr-RS');
             document.getElementById('inpDate').valueAsDate = new Date();
-            this.populateCats();
-            
+            this.populateCats(); this.renderSettingsCats();
             ['inpFxAmt', 'inpFxRate'].forEach(id => document.getElementById(id).addEventListener('input', () => {
                 const a = parseFloat(document.getElementById('inpFxAmt').value)||0, b = parseFloat(document.getElementById('inpFxRate').value)||0;
                 document.getElementById('fxRes').innerText = (a*b).toFixed(2);
             }));
-            this.updateDashboard();
         }
-
-        populateCats() {
-            const s1 = document.getElementById('inpCategory'), s2 = document.getElementById('targetMainCat');
-            s1.innerHTML = '<option disabled selected>Izaberi...</option>'; s2.innerHTML = '';
-            Object.keys(this.cats).sort().forEach(c => {
-                s1.innerHTML += `<option value="${c}">${c}</option>`;
-                s2.innerHTML += `<option value="${c}">${c}</option>`;
-            });
-        }
-
         nav(s) {
             document.querySelectorAll('.app-section, #menuSection').forEach(e => e.style.display = 'none');
             if(s==='home') document.getElementById('menuSection').style.display='grid';
-            else { document.getElementById(s+'Section').style.display='block'; if(s==='input') this.resetForm(); if(s==='report') this.renderReport(); }
+            else { 
+                document.getElementById(s+'Section').style.display='block'; 
+                if(s==='input' && !document.getElementById('inpId').value) this.resetForm();
+                if(s==='report') this.renderList();
+                if(s==='analytics') this.quickFilter('month'); 
+                if(s==='settings') this.renderSettingsCats();
+            }
+        }
+        
+        // --- CAT & SUBCAT MANAGER ---
+        populateCats() {
+            const s1 = document.getElementById('inpCategory'), s2 = document.getElementById('targetMainCat');
+            const sel1 = s1.value, sel2 = s2.value;
+            s1.innerHTML = '<option disabled selected>Izaberi...</option>'; s2.innerHTML = '';
+            Object.keys(this.cats).sort().forEach(c => {
+                s1.innerHTML += `<option value="${c}">${c}</option>`; s2.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+            if(sel1 && this.cats[sel1]) s1.value = sel1; if(sel2 && this.cats[sel2]) s2.value = sel2;
+        }
+
+        renderSettingsCats() {
+            const container = document.getElementById('catListContainer');
+            let html = '';
+            Object.keys(this.cats).sort().forEach(c => {
+                const subs = this.cats[c];
+                let subHtml = '';
+                subs.forEach(s => {
+                    subHtml += `<div class="sub-cat-item">
+                        <span>- ${s}</span>
+                        <div>
+                            <button class="btn-icon edit-icon" onclick="app.renameSubCat('${c}', '${s}')">✎</button>
+                            <button class="btn-icon del-icon" onclick="app.delSubCat('${c}', '${s}')">❌</button>
+                        </div>
+                    </div>`;
+                });
+
+                html += `<div class="cat-item">
+                    <div class="cat-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display==='block'?'none':'block'">
+                        <span>${c} <small>▼</small></span>
+                        <div onclick="event.stopPropagation()">
+                            <button class="btn-icon add-icon" onclick="app.selectCatForAdd('${c}')" title="Dodaj potkategoriju">➕</button>
+                            <button class="btn-icon edit-icon" onclick="app.renameCat('${c}')">✎</button>
+                            <button class="btn-icon del-icon" onclick="app.delCat('${c}')">❌</button>
+                        </div>
+                    </div>
+                    <div class="sub-cat-list">${subHtml}</div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        selectCatForAdd(name) {
+            document.getElementById('targetMainCat').value = name;
+            const input = document.getElementById('newSubCat');
+            input.focus();
+            input.parentElement.classList.add('highlight-input');
+            setTimeout(() => input.parentElement.classList.remove('highlight-input'), 1000);
         }
 
         addMainCat() {
-            const v = document.getElementById('newMainCat').value.trim();
-            if(v && !this.cats[v]) { this.cats[v]=["Ostalo"]; this.saveCats(); this.populateCats(); alert("OK"); }
+            const val = document.getElementById('newMainCat').value.trim();
+            if(val && !this.cats[val]) { this.cats[val] = ["Ostalo"]; this.saveCats(); document.getElementById('newMainCat').value = ''; this.populateCats(); this.renderSettingsCats(); alert("Kategorija dodata! Sada kliknite na ➕ pored nje da dodate potkategorije."); } 
+            else { alert("Greška u nazivu."); }
         }
         addSubCat() {
-            const m = document.getElementById('targetMainCat').value, s = document.getElementById('newSubCat').value.trim();
-            if(s && !this.cats[m].includes(s)) { this.cats[m].push(s); this.saveCats(); alert("OK"); }
+            const main = document.getElementById('targetMainCat').value, sub = document.getElementById('newSubCat').value.trim();
+            if(main && sub && !this.cats[main].includes(sub)) { this.cats[main].push(sub); this.saveCats(); document.getElementById('newSubCat').value = ''; this.renderSettingsCats(); alert("Potkategorija dodata!"); } 
+            else { alert("Izaberite kategoriju i upišite naziv."); }
         }
-        saveCats() { localStorage.setItem('erp_v20_cats', JSON.stringify(this.cats)); }
 
+        renameCat(oldName) {
+            const newName = prompt("Novi naziv za: " + oldName, oldName);
+            if(newName && newName !== oldName && !this.cats[newName]) {
+                this.cats[newName] = this.cats[oldName]; delete this.cats[oldName];
+                this.data.forEach(x => { if(x.cat === oldName) x.cat = newName; });
+                this.saveAll(); alert("Preimenovano!");
+            }
+        }
+        delCat(name) {
+            if(this.data.some(x => x.cat === name)) return alert("Ne može se brisati jer ima troškova!");
+            if(confirm("Obriši kategoriju?")) { delete this.cats[name]; this.saveAll(); }
+        }
+        renameSubCat(cat, oldSub) {
+            const newSub = prompt("Novi naziv za: " + oldSub, oldSub);
+            if(newSub && newSub !== oldSub && !this.cats[cat].includes(newSub)) {
+                const idx = this.cats[cat].indexOf(oldSub); this.cats[cat][idx] = newSub;
+                this.data.forEach(x => { if(x.cat === cat && x.sub === oldSub) x.sub = newSub; });
+                this.saveAll(); alert("Potkategorija preimenovana!");
+            }
+        }
+        delSubCat(cat, sub) {
+            if(this.data.some(x => x.cat === cat && x.sub === sub)) return alert("Ne može se brisati jer ima troškova!");
+            if(confirm("Obriši potkategoriju?")) { this.cats[cat] = this.cats[cat].filter(s => s !== sub); this.saveAll(); }
+        }
+
+        saveCats() { localStorage.setItem('erp_v46_cats', JSON.stringify(this.cats)); }
+        saveAll() { this.saveCats(); localStorage.setItem('erp_v46_data', JSON.stringify(this.data)); this.populateCats(); this.renderSettingsCats(); }
+        
         handleCatChange() {
             const c = document.getElementById('inpCategory').value, sub = document.getElementById('inpSub');
-            sub.innerHTML = ''; document.getElementById('specElec').style.display='none'; document.getElementById('specFX').style.display='none';
-            document.getElementById('inpAmount').disabled = false;
-            
+            sub.innerHTML = ''; 
+            document.getElementById('specElec').style.display = (c==='Električna energija')?'block':'none';
+            document.getElementById('specFX').style.display = (c==='Menjačnica')?'block':'none';
+            document.getElementById('inpAmount').disabled = (c==='Menjačnica');
             if(this.cats[c]) this.cats[c].forEach(s => sub.innerHTML += `<option value="${s}">${s}</option>`);
-            if(c === 'Električna energija') document.getElementById('specElec').style.display='block';
-            if(c === 'Menjačnica') { document.getElementById('specFX').style.display='block'; document.getElementById('inpAmount').disabled=true; }
         }
 
         saveEntry() {
-            const id = document.getElementById('inpId').value;
+            const idVal = document.getElementById('inpId').value;
             const entry = {
-                id: id ? parseInt(id) : Date.now(),
+                id: idVal ? parseInt(idVal) : Date.now(),
                 date: document.getElementById('inpDate').value,
                 cat: document.getElementById('inpCategory').value,
                 sub: document.getElementById('inpSub').value,
-                amount: parseFloat(document.getElementById('inpAmount').value),
-                desc: document.getElementById('inpDesc').value,
+                amount: parseFloat(document.getElementById('inpAmount').value), 
+                desc: document.getElementById('inpDesc').value.toUpperCase(),
                 meta: {}
             };
-            
             if(!entry.cat) return alert("Kategorija!");
-            if(entry.cat === 'Električna energija') entry.meta = {vt: document.getElementById('inpVT').value, nt: document.getElementById('inpNT').value, totalKw: parseFloat(document.getElementById('inpVT').value||0)+parseFloat(document.getElementById('inpNT').value||0)};
+            if(entry.cat === 'Električna energija') entry.meta = {vt: Number(document.getElementById('inpVT').value), nt: Number(document.getElementById('inpNT').value)};
             if(entry.cat === 'Menjačnica') { entry.meta = {fxAmt: document.getElementById('inpFxAmt').value, fxRate: document.getElementById('inpFxRate').value}; entry.amount = entry.meta.fxAmt * entry.meta.fxRate; }
-            
             if(!entry.amount && entry.amount!==0) return alert("Iznos?");
 
-            if(id) this.data[this.data.findIndex(x=>x.id==id)] = entry; else this.data.push(entry);
-            
+            if(idVal) { const idx = this.data.findIndex(x => x.id == idVal); if(idx > -1) this.data[idx] = entry; } 
+            else { this.data.push(entry); }
+
             this.data.sort((a,b)=>new Date(b.date)-new Date(a.date));
-            localStorage.setItem('erp_v20_data', JSON.stringify(this.data));
-            this.updateDashboard(); this.nav('home');
+            localStorage.setItem('erp_v46_data', JSON.stringify(this.data));
+            alert(idVal ? "Ažurirano!" : "Sačuvano!"); this.resetForm(); this.nav('report');
         }
 
-        resetForm() { document.querySelectorAll('input').forEach(i=>i.value=''); document.getElementById('inpDate').valueAsDate=new Date(); }
-
-        edit(id) {
-            const e = this.data.find(x=>x.id==id); if(!e) return;
-            this.nav('input'); document.getElementById('inpId').value=e.id; document.getElementById('inpDate').value=e.date;
-            document.getElementById('inpCategory').value=e.cat; this.handleCatChange();
-            setTimeout(()=>{document.getElementById('inpSub').value=e.sub},0);
-            document.getElementById('inpAmount').value=e.amount; document.getElementById('inpDesc').value=e.desc;
+        editEntry(id) {
+            const item = this.data.find(x => x.id === id); if(!item) return;
+            this.nav('input');
+            document.getElementById('inpId').value = item.id;
+            document.getElementById('inpDate').value = item.date;
+            document.getElementById('inpCategory').value = item.cat;
+            this.handleCatChange();
+            document.getElementById('inpSub').value = item.sub;
+            document.getElementById('inpAmount').value = item.amount;
+            document.getElementById('inpDesc').value = item.desc;
+            if(item.meta) {
+                if(item.meta.vt) { document.getElementById('inpVT').value=item.meta.vt; document.getElementById('inpNT').value=item.meta.nt; }
+                if(item.meta.fxAmt) { document.getElementById('inpFxAmt').value=item.meta.fxAmt; document.getElementById('inpFxRate').value=item.meta.fxRate; }
+            }
+            const btn = document.getElementById('btnSave'); btn.innerText = "Ažuriraj Izmenu"; btn.classList.add('update-mode');
         }
 
-        del(id) { if(confirm('Brisanje?')) { this.data=this.data.filter(x=>x.id!=id); localStorage.setItem('erp_v20_data', JSON.stringify(this.data)); this.renderReport(); this.updateDashboard(); } }
-
-        updateDashboard() {
-            let t=0, k=0, f=0;
-            this.data.forEach(x => { if(x.cat==='Menjačnica') f+=parseFloat(x.meta?.fxAmt||0); else t+=x.amount; if(x.meta?.totalKw) k+=x.meta.totalKw; });
-            document.getElementById('dashTotal').innerText=t.toLocaleString('sr-RS');
-            document.getElementById('dashKW').innerText=k; document.getElementById('dashFX').innerText=f;
+        delEntry(id) {
+            if(confirm("Obriši trošak?")) {
+                this.data = this.data.filter(x => x.id !== id);
+                localStorage.setItem('erp_v46_data', JSON.stringify(this.data));
+                this.renderList();
+            }
         }
+        resetForm() { document.querySelectorAll('input').forEach(i=>i.value=''); document.getElementById('inpDate').valueAsDate=new Date(); document.getElementById('inpId').value=''; const btn = document.getElementById('btnSave'); btn.innerText="Sačuvaj"; btn.classList.remove('update-mode'); }
 
-        setReportView(v, b) { this.currentReportView=v; document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); this.renderReport(); }
-
-        renderReport() {
-            const c = document.getElementById('reportContainer');
-            let h = `<table>`;
-            h += `<thead><tr><th style="width:30%">Datum</th><th style="width:40%">Opis</th><th style="width:30%;text-align:right">Iznos</th></tr></thead><tbody>`;
-            this.data.forEach(r => {
-                h += `<tr>
-                    <td>${new Date(r.date).toLocaleDateString('sr-RS')}</td>
-                    <td><b>${r.cat}</b> / ${r.sub} ${r.desc ? '<br><i>'+r.desc+'</i>' : ''}</td>
-                    <td style="text-align:right">
-                        ${r.amount.toLocaleString('sr-RS', {minimumFractionDigits:2})}
-                        <div class="btn-edit" style="display:inline-block; margin-left:10px;">
-                            <button onclick="app.del(${r.id})" style="color:red;border:none;background:none;font-size:1.2em;">&times;</button> 
-                            <button onclick="app.edit(${r.id})" style="border:none;background:none;font-size:1.2em;">✎</button>
-                        </div>
-                    </td>
-                </tr>`;
+        setReportRange(type) { this.renderList(type); }
+        renderList(type='ALL') {
+            const c = document.getElementById('reportContainer'); const now = new Date();
+            let filtered = this.data;
+            if(type==='THIS_MONTH') filtered = this.data.filter(x => new Date(x.date).getMonth() === now.getMonth() && new Date(x.date).getFullYear() === now.getFullYear());
+            let h = `<table><thead><tr><th>Datum</th><th>Opis</th><th style="text-align:right">Iznos</th><th class="no-print">Akcije</th></tr></thead><tbody>`;
+            let sum = 0;
+            filtered.forEach(r => {
+                if(r.cat!=='Menjačnica') sum += r.amount;
+                h += `<tr><td>${new Date(r.date).toLocaleDateString('sr-RS')}</td><td><b>${r.cat}</b> / ${r.sub}<br><i>${r.desc}</i></td><td style="text-align:right">${r.amount.toLocaleString(undefined, {minimumFractionDigits:2})}</td><td class="no-print" style="text-align:right"><button class="btn-icon edit-icon" onclick="app.editEntry(${r.id})">✎</button><button class="btn-icon del-icon" onclick="app.delEntry(${r.id})">❌</button></td></tr>`;
             });
-            c.innerHTML = h + `</tbody></table>`;
+            h += `<tr style="background:#ddd; font-weight:bold;"><td>UKUPNO</td><td></td><td style="text-align:right">${sum.toLocaleString(undefined, {minimumFractionDigits:2})}</td><td></td></tr></tbody></table>`;
+            c.innerHTML = h;
+        }
+
+        quickFilter(mode) {
+            const now = new Date(); const y = now.getFullYear();
+            const d1 = new Date(y, mode==='year'?0:now.getMonth(), 1);
+            const d2 = new Date(y, mode==='year'?11:now.getMonth()+1, 0);
+            document.getElementById('anDateFrom').valueAsDate = d1; document.getElementById('anDateTo').valueAsDate = d2;
+            this.generateAnalytics();
+        }
+
+        generateAnalytics() {
+            const d1 = new Date(document.getElementById('anDateFrom').value), d2 = new Date(document.getElementById('anDateTo').value);
+            document.getElementById('anPeriodLbl').innerText = `${d1.toLocaleDateString()} - ${d2.toLocaleDateString()}`;
+            document.getElementById('analyticsPrintHeader').style.display='block';
+            const subset = this.data.filter(x => { const d = new Date(x.date); return d >= d1 && d <= d2; });
+
+            let total = 0, cats = {}, elec = {kw:0,vt:0,nt:0}, fx = {sum:0,list:[]};
+            subset.forEach(x => {
+                if(x.cat === 'Menjačnica') { fx.sum += x.amount; fx.list.push(x); return; }
+                total += x.amount;
+                if(!cats[x.cat]) cats[x.cat] = {sum:0, subs:{}};
+                cats[x.cat].sum += x.amount;
+                if(!cats[x.cat].subs[x.sub]) cats[x.cat].subs[x.sub]=0; cats[x.cat].subs[x.sub] += x.amount;
+                if(x.cat === 'Električna energija') { elec.vt+=(x.meta?.vt||0); elec.nt+=(x.meta?.nt||0); elec.kw=elec.vt+elec.nt; }
+            });
+
+            const dayDiff = Math.max(1, Math.ceil((d2 - d1)/(1000*60*60*24)));
+            document.getElementById('anTotal').innerText = total.toLocaleString(undefined,{minimumFractionDigits:2});
+            document.getElementById('anAvg').innerText = (total/dayDiff).toLocaleString(undefined,{minimumFractionDigits:2});
+
+            let tbody = '', chartL=[], chartD=[], chartC=[];
+            Object.keys(cats).sort((a,b)=>cats[b].sum-cats[a].sum).forEach((c,i) => {
+                const subId = `sub_${i}`;
+                tbody += `<tr class="cat-row" onclick="document.getElementById('${subId}').style.display = document.getElementById('${subId}').style.display==='table-row'?'none':'table-row'"><td><b>${c}</b> <small>▼</small></td><td style="text-align:right"><b>${cats[c].sum.toLocaleString(undefined,{minimumFractionDigits:2})}</b></td><td style="text-align:right">${((cats[c].sum/total)*100).toFixed(1)}%</td></tr>`;
+                tbody += `<tr id="${subId}" class="sub-row"><td colspan="3">`;
+                Object.keys(cats[c].subs).forEach(s => tbody += `<div style="display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px dotted #ddd;"><span>${s}</span> <span>${cats[c].subs[s].toLocaleString(undefined,{minimumFractionDigits:2})}</span></div>`);
+                tbody += `</td></tr>`;
+                chartL.push(c); chartD.push(cats[c].sum); chartC.push(`hsl(${i*40},70%,50%)`);
+            });
+            document.getElementById('analyticsBody').innerHTML = tbody;
+            document.getElementById('fxTotal').innerText = fx.sum.toLocaleString(undefined,{minimumFractionDigits:2});
+            let fxHtml = `<small><i>Lista transakcija:</i></small><br>`;
+            fx.list.forEach(f => fxHtml += `<div style="display:flex; justify-content:space-between; font-size:0.85rem; border-bottom:1px solid #ccc;"><span>${new Date(f.date).toLocaleDateString()}</span><span>${f.amount.toLocaleString()} RSD (${f.meta.fxAmt}€)</span></div>`);
+            document.getElementById('fxTableContainer').innerHTML = fxHtml;
+            document.getElementById('enTotalKW').innerText = elec.kw; document.getElementById('enVT').innerText = elec.vt; document.getElementById('enNT').innerText = elec.nt;
+            this.renderChart(chartL, chartD, chartC);
+        }
+
+        renderChart(l, d, c) {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            if(this.chartInstance) this.chartInstance.destroy();
+            this.chartInstance = new Chart(ctx, { type: 'doughnut', data: { labels: l, datasets: [{ data: d, backgroundColor: c }] }, options: { responsive: true, maintainAspectRatio: false, layout: {padding: 20} } });
         }
 
         downloadMD() {
-            let md = `# Izveštaj\n\n`;
-            this.data.forEach(x => md += `| ${x.date} | ${x.cat} | ${x.amount} |\n`);
-            const file = new File([md], "izvestaj.md", {type:'text/markdown'});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download="izvestaj.md";
-            document.body.appendChild(a); a.click(); setTimeout(()=>document.body.removeChild(a),100);
+            const d = new Date().toISOString().split('T')[0];
+            let md = `# SINET ERP Izveštaj (${d})\n\n| Datum | Kategorija | Iznos |\n|---|---|---|\n`;
+            this.data.forEach(x => md += `| ${x.date} | ${x.cat} | ${x.amount.toFixed(2)} |\n`);
+            this.saveFile(md, `SINET_Izvestaj_${d}.md`, 'text/markdown');
         }
-
-        backupData() {
-            const payload = { data: this.data, cats: this.cats, ts: new Date().toISOString() };
-            const file = new File([JSON.stringify(payload)], "SINET_BACKUP.json", {type: "application/json"});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = "SINET_BACKUP.json";
-            document.body.appendChild(a); a.click(); setTimeout(() => document.body.removeChild(a), 100);
-        }
-
-        restoreData(input) {
-            const file = input.files[0]; if(!file) return;
-            if(!confirm("Ovo će obrisati trenutne podatke. Nastaviti?")) return;
-            const r = new FileReader();
-            r.onload = (e) => {
-                try {
-                    const p = JSON.parse(e.target.result);
-                    if(p.data && p.cats) { this.data=p.data; this.cats=p.cats; localStorage.setItem('erp_v20_data',JSON.stringify(this.data)); localStorage.setItem('erp_v20_cats',JSON.stringify(this.cats)); location.reload(); }
-                } catch(err) { alert("Greška u fajlu"); }
-            };
-            r.readAsText(file);
-        }
+        backupData() { const d = new Date().toISOString().split('T')[0]; this.saveFile(JSON.stringify({data:this.data, cats:this.cats}), `SINET_BACKUP_${d}.json`, 'application/json'); }
+        saveFile(c, n, t) { const a = document.createElement('a'); a.href = URL.createObjectURL(new File([c], n, {type:t})); a.download = n; document.body.appendChild(a); a.click(); setTimeout(()=>document.body.removeChild(a), 100); }
+        async syncToGoogleCloud() { if(confirm("Sinhronizacija?")) { try { await fetch(SINET_CLOUD_CONFIG.url, {method:"POST", body:JSON.stringify({api_secret:SINET_CLOUD_CONFIG.api_secret, data:this.data})}); alert("Uspeh!"); } catch(e){alert("Greška.");} } }
+        restoreData(i) { const f=i.files[0]; if(!f)return; const r=new FileReader(); r.onload=(e)=>{const p=JSON.parse(e.target.result); this.data=p.data; this.cats=p.cats||CATEGORY_MAP; localStorage.setItem('erp_v46_data',JSON.stringify(this.data)); localStorage.setItem('erp_v46_cats',JSON.stringify(this.cats)); location.reload();}; r.readAsText(f); }
+        factoryReset() { if(confirm("FABRIČKI RESET?")) { localStorage.clear(); location.reload(); } }
     }
     window.app = new App();
 </script>
